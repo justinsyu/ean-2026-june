@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://justinsyu.github.io/ean-2026-june/sitemap.xml

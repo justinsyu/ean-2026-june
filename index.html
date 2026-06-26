@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <title>EAN 2026 Abstract Archive</title>
+    <meta name="description" content="Searchable static archive of oral presentation, ePoster, and virtual ePoster abstracts from the 12th Congress of the European Academy of Neurology - Geneva 2026.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/css/site.css?v=ean-2026">
+  </head>
+  <body id="top">
+    <header class="site-header">
+      <a class="brand" href="./">EAN 2026 Abstract Archive</a>
+      <nav aria-label="Primary navigation">
+        <a href="#browse">Browse</a>
+        <a href="intelligence.html">Intelligence</a>
+        <a href="#tracks">Topics</a>
+        <a href="#sessions">Types</a>
+        <a href="https://www.ean.org/congress2026" target="_blank" rel="noopener">Congress Site</a>
+        <a class="nav-download" href="ean_2026_abstracts_analysis_ready.json" aria-label="Download full data">
+          <svg class="download-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path d="M12 3v11"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"></path>
+          </svg>
+          <span>Data</span>
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <img class="meeting-hero-art" src="assets/images/ean-2026-header.jpg" alt="EAN Congress 2026 Geneva header artwork">
+        <img class="meeting-logo-art" src="assets/images/ean-2026-logo.png" alt="12th Congress of the European Academy of Neurology - Geneva 2026">
+        <h1>EAN 2026 Abstract Archive</h1>
+        <p class="lead">A static, browser-searchable view of oral presentation, ePoster, and virtual ePoster abstracts from the 12th Congress of the European Academy of Neurology - Geneva 2026, held 27-30 June 2026 at Palexpo in Geneva, Switzerland.</p>
+      </section>
+
+      <section class="summary-grid" aria-label="Archive summary">
+        <div>
+          <strong>Records</strong>
+          <span data-stat="records">253</span>
+        </div>
+        <div>
+          <strong>Topics</strong>
+          <span data-stat="tracks">2</span>
+        </div>
+        <div>
+          <strong>Structured records</strong>
+          <span data-stat="tables">199</span>
+        </div>
+      </section>
+
+      <section id="browse" class="archive-browser" aria-labelledby="browse-title">
+        <div class="section-heading-row">
+          <div>
+            <h2 id="browse-title">Browse abstracts</h2>
+            <p class="lead">Search title, abstract text, author, presentation type, topic, and abstract number. Results update locally in the browser.</p>
+          </div>
+        </div>
+
+        <form class="filter-panel" id="filters">
+          <label>
+            <span>Search</span>
+            <input id="search" type="search" placeholder="Try multiple sclerosis, stroke, epilepsy, biomarker">
+          </label>
+          <label>
+            <span>Presentation type</span>
+            <select id="session-filter">
+              <option value="">All presentation types</option>
+            </select>
+          </label>
+          <label>
+            <span>Topic</span>
+            <select id="track-filter">
+              <option value="">All topics</option>
+            </select>
+          </label>
+          <label>
+            <span>Sort</span>
+            <select id="sort-filter">
+              <option value="relevance">Relevance</option>
+              <option value="abstract">Record number</option>
+              <option value="title">Title</option>
+              <option value="session">Presentation type</option>
+              <option value="track">Topic</option>
+            </select>
+          </label>
+          <label class="checkbox-control">
+            <input id="table-filter" type="checkbox">
+            <span>Structured records only</span>
+          </label>
+        </form>
+
+        <div class="results-toolbar" aria-live="polite">
+          <span id="result-count">Loading abstracts...</span>
+          <button class="button button-secondary" id="clear-filters" type="button">Clear filters</button>
+        </div>
+
+        <ul class="document-list document-rows" id="results"></ul>
+        <button class="button button-primary load-more" id="load-more" type="button" hidden>Load more results</button>
+      </section>
+
+      <section id="tracks" aria-labelledby="tracks-title">
+        <h2 id="tracks-title">Topics</h2>
+        <ul class="document-list analytics-grid" id="track-list"></ul>
+      </section>
+
+      <section id="sessions" aria-labelledby="sessions-title">
+        <h2 id="sessions-title">Presentation types</h2>
+        <ul class="document-list analytics-grid" id="session-list"></ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Static archive for search, citation, and AI retrieval. Congress-site and abstract-book links are retained on every abstract card.</p>
+      <p>Maintained by Justin Yu. <a href="https://www.ean.org/congress2026" target="_blank" rel="noopener">EAN 2026 congress site</a>.</p>
+    </footer>
+
+    <div class="floating-site-controls" aria-label="Site shortcuts">
+      <a class="back-to-top" href="#top" aria-label="Back to top" title="Back to top">
+        <span class="back-to-top-icon" aria-hidden="true"></span>
+        <span>Top</span>
+      </a>
+    </div>
+
+    <dialog class="abstract-dialog" id="abstract-dialog" aria-labelledby="dialog-title">
+      <article>
+        <button class="dialog-close" type="button" aria-label="Close abstract detail">Close</button>
+        <div id="dialog-content"></div>
+      </article>
+    </dialog>
+
+    <script src="assets/js/app.js?v=ean-2026" defer></script>
+  </body>
+</html>

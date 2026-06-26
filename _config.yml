@@ -1,0 +1,11 @@
+title: EAN 2026 Abstract Archive
+description: Searchable static archive of EAN 2026 oral presentation, ePoster, and virtual ePoster abstracts.
+url: "https://justinsyu.github.io"
+baseurl: "/ean-2026-june"
+repository_url: "https://github.com/justinsyu/ean-2026-june"
+exclude:
+  - scripts
+  - README.md
+  - INSTRUCTIONS.md
+  - AGENTS.md
+  - ENE_v33_iS1_Congress_Abstract_Book.pdf

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <title>EAN 2026 Abstract Intelligence</title>
+    <meta name="description" content="Interactive EAN 2026 abstract intelligence dashboard with source-linked abstract evidence for each data point.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/css/site.css?v=ean-2026">
+    <link rel="stylesheet" href="assets/css/intelligence.css?v=ean-2026">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <script src="assets/js/intelligence.js?v=ean-2026" defer></script>
+  </head>
+  <body class="intelligence-page is-loading" id="top">
+    <header class="site-header">
+      <a class="brand" href="./">EAN 2026 Abstract Archive</a>
+      <nav aria-label="Primary navigation">
+        <a href="./#browse">Browse</a>
+        <a href="intelligence.html" aria-current="page">Intelligence</a>
+        <a href="./#tracks">Topics</a>
+        <a href="./#sessions">Types</a>
+        <a href="https://www.ean.org/congress2026" target="_blank" rel="noopener">Congress Site</a>
+        <a class="nav-download" href="ean_2026_abstracts_analysis_ready.json" aria-label="Download full data">
+          <svg class="download-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path d="M12 3v11"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"></path>
+          </svg>
+          <span>Data</span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="dashboard-shell">
+      <section class="masthead">
+        <img class="meeting-hero-art" src="assets/images/ean-2026-header.jpg" alt="EAN Congress 2026 Geneva header artwork">
+        <img class="meeting-logo-art" src="assets/images/ean-2026-logo.png" alt="12th Congress of the European Academy of Neurology - Geneva 2026">
+        <h1>EAN 2026 Abstract Intelligence</h1>
+        <p class="lead">A dashboard view of oral presentation, ePoster, and virtual ePoster abstracts from the 12th Congress of the European Academy of Neurology - Geneva 2026, using deterministic keyword groupings to expose clinical themes, methods, and evidence clusters. Every data point opens the matching source abstracts.</p>
+      </section>
+
+      <section class="dashboard-loading" id="dashboard-loading" aria-live="polite" aria-busy="true">
+        <span class="loading-mark" aria-hidden="true"></span>
+        <span>Loading intelligence view</span>
+      </section>
+
+      <section class="kpi-grid" id="kpi-grid" aria-label="Key metrics"></section>
+
+      <section class="section-block insight-section">
+        <h2><span class="dot cyan"></span>Top Intelligence Findings</h2>
+        <div class="insight-box">
+          <ul class="insight-list" id="insight-list"></ul>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2><span class="dot blue"></span>Abstract Corpus</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>Topic distribution</h3>
+            <div class="chart-wrap"><canvas id="sessionChart"></canvas></div>
+            <p class="hint">Click a segment to inspect the matching abstracts.</p>
+          </article>
+          <article class="card">
+            <h3>Abstract structure patterns</h3>
+            <div class="bar-list" id="structureBars"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2><span class="dot red"></span>Neurology Theme Landscape</h2>
+        <article class="card">
+          <h3>Major neurology themes</h3>
+          <div class="chart-wrap-lg"><canvas id="themeChart"></canvas></div>
+          <p class="hint">Click any bar to open all matching abstracts.</p>
+        </article>
+      </section>
+
+      <section class="section-block">
+        <h2><span class="dot purple"></span>Methods and Evidence Signals</h2>
+        <div class="grid-3">
+          <article class="card">
+            <h3>Evidence model</h3>
+            <div class="chart-wrap"><canvas id="methodChart"></canvas></div>
+          </article>
+          <article class="card">
+            <h3>Trial phase mentions</h3>
+            <div class="chart-wrap"><canvas id="phaseChart"></canvas></div>
+          </article>
+          <article class="card">
+            <h3>Measurement and data sources</h3>
+            <div class="bar-list" id="sourceBars"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2><span class="dot green"></span>Treatment and Mechanism Signals</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>Therapeutic approaches</h3>
+            <div class="bar-list" id="treatmentBars"></div>
+          </article>
+          <article class="card">
+            <h3>Mechanistic and biomarker areas</h3>
+            <div class="bar-list" id="biomarkerBars"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2><span class="dot amber"></span>Focused Intelligence Views</h2>
+        <div class="grid-3" id="focus-cards"></div>
+      </section>
+    </main>
+
+    <dialog class="records-dialog" id="records-dialog">
+      <article class="records-panel">
+        <button class="dialog-close" type="button" aria-label="Close records dialog">Close</button>
+        <header>
+          <p class="eyebrow" id="dialog-kind">Data point</p>
+          <h2 id="dialog-title">Matching abstracts</h2>
+          <p id="dialog-summary"></p>
+        </header>
+        <div class="dialog-tools">
+          <input id="dialog-search" type="search" placeholder="Filter matching abstracts">
+          <button id="copy-urls" type="button">Copy URLs</button>
+        </div>
+        <ol id="records-list" class="records-list"></ol>
+        <button id="load-more-records" class="load-more" type="button">Load more</button>
+      </article>
+    </dialog>
+
+    <dialog class="abstract-dialog" id="abstract-dialog" aria-labelledby="abstract-dialog-title">
+      <article>
+        <button class="dialog-close" type="button" aria-label="Close abstract detail">Close</button>
+        <div id="abstract-dialog-content"></div>
+      </article>
+    </dialog>
+
+    <footer class="site-footer">
+      <p>Static archive for search, citation, and AI retrieval. Intelligence categories are keyword-derived from EAN 2026 abstract text.</p>
+      <p>Maintained by Justin Yu. <a href="https://www.ean.org/congress2026" target="_blank" rel="noopener">EAN 2026 congress site</a>.</p>
+    </footer>
+
+    <div class="floating-site-controls" aria-label="Site shortcuts">
+      <a class="back-to-top" href="#top" aria-label="Back to top" title="Back to top">
+        <span class="back-to-top-icon" aria-hidden="true"></span>
+        <span>Top</span>
+      </a>
+    </div>
+  </body>
+</html>
