@@ -1,0 +1,10 @@
+# Instructions
+- For all tasks, use subagents whenever possible to optimize use of context and minimize unnecessary context in the main (orchestrator) conversation. Use subagents in parallel whenever possible as well to increase efficiency of completing tasks.
+- Use the superpowers skill for all tasks.
+- Test all newly-implemented features using, in order of preference: dev-browser (may need to reset relay and/or check for conflicting relays that are active on the same port) and Playwright MCP.
+- If I propose something you don't think is ideal, question me about it and provide your rationale.
+- If applicable: When explaining what you did for an output, don't just assume I know what variable names mean. Provide a short description as well if you think there's any chance I may not understand it at first look
+- Subagents must always be the same model and thinking level as the orchestrator agent.
+- For evidence screenshots, close cookie banners, consent dialogs, modals, popups, and newsletter or marketing overlays before capture. If the page content is dimmed or a dark overlay covers the viewport, the screenshot is invalid; close or remove the overlay and retake it.
+- After updating evidence screenshots, spawn a fresh subagent to independently verify that the relevant text is highlighted and that no screenshot contains an obscuring popup, modal, consent banner, or dark overlay.
+- Whenever the user provides feedback regarding an output, determine if it can be generalized to other similar situations. If so, then use a new subagent to deterministically update this file (AGENTS.md) accordingly. You can add new sections or edit existing sections in this file. Afterwards, check to make sure that the updates are localized only to the specific part of this file, as you should not be rewriting the entire file.s
