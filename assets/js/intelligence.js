@@ -275,13 +275,15 @@ function renderChart(canvasId, type, points, kind, extra = {}) {
       interaction: { mode: "nearest", intersect: false },
       onClick: chartClickHandler(points, kind),
       plugins: {
-        legend: { display: type !== "bar", position: "bottom", labels: { color: colors.gray, boxWidth: 10, font: { size: 10 } } },
+        legend: { display: extra.legend !== false && type !== "bar", position: "bottom", labels: { color: colors.gray, boxWidth: 10, font: { size: 10 } } },
         tooltip: {
           callbacks: {
             label: (context) => `${context.label}: ${numberFormat(context.parsed.y ?? context.parsed.x ?? context.parsed)} abstracts`,
           },
         },
       },
+      cutout: extra.cutout || (type === "doughnut" ? "54%" : undefined),
+      radius: extra.radius,
       scales: type === "doughnut" ? undefined : {
         x: { grid: { color: extra.indexAxis === "y" ? "#e7e7e7" : "transparent" }, ticks: { color: colors.gray, font: { size: 10 } } },
         y: { grid: { color: extra.indexAxis === "y" ? "transparent" : "#e7e7e7" }, ticks: { color: colors.gray, font: { size: 10 } } },
@@ -437,7 +439,7 @@ function wireDialogs() {
 function renderAll() {
   renderKpis();
   renderInsights();
-  renderChart("sessionChart", "doughnut", groupRecords((record) => record.track || "Unspecified"), "Topic");
+  renderChart("sessionChart", "doughnut", groupRecords((record) => record.track || "Unspecified"), "Topic", { legend: false, cutout: "46%", radius: "100%" });
 
   renderChart("themeChart", "bar", countDefinitions(definitions.themes), "Clinical theme", { indexAxis: "y" });
   renderChart("methodChart", "doughnut", countDefinitions(definitions.methods), "Method");

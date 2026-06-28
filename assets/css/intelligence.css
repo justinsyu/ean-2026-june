@@ -280,7 +280,10 @@
 }
 
 .topic-chart-wrap {
-  height: 23rem;
+  width: min(52%, 42rem);
+  height: auto;
+  aspect-ratio: 1;
+  margin: 0 auto;
 }
 
 .chart-wrap-lg {
@@ -559,6 +562,11 @@
 
   .bar-item {
     grid-template-columns: 1fr 4rem;
+  }
+
+  .topic-chart-wrap {
+    width: min(100%, 28rem);
+    height: auto;
   }
 
   .bar-track {
