@@ -162,13 +162,6 @@ function groupRecords(keyFn) {
   return [...grouped.entries()].map(([label, records]) => ({ label, records }));
 }
 
-function structureLabel(record) {
-  const labels = (record.section_labels || []).filter((label) => label !== "Authors");
-  if (!labels.length) return "Unstructured";
-  if (labels.length === 1 && labels[0] === "Abstract") return "Narrative abstract";
-  return labels.join(" / ");
-}
-
 function metadata(record) {
   return [
     record.abstract_number ? `Record ${record.abstract_number}` : "",
@@ -444,11 +437,6 @@ function renderAll() {
   renderKpis();
   renderInsights();
   renderChart("sessionChart", "doughnut", groupRecords((record) => record.track || "Unspecified"), "Topic");
-
-  const structures = groupRecords(structureLabel)
-    .sort((a, b) => b.records.length - a.records.length)
-    .slice(0, 8);
-  renderBarList("structureBars", structures, "Structure");
 
   renderChart("themeChart", "bar", countDefinitions(definitions.themes), "Clinical theme", { indexAxis: "y" });
   renderChart("methodChart", "doughnut", countDefinitions(definitions.methods), "Method");
