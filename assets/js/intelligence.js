@@ -1,4 +1,4 @@
-const DATA_URL = "assets/data/abstracts-index.json?v=ean-intelligence";
+const DATA_URL = "assets/data/abstracts-index.json?v=ean-intelligence-20260628";
 const PAGE_SIZE = 80;
 
 const colors = {
@@ -228,6 +228,7 @@ function renderInsights() {
 function renderBarList(id, points, kind) {
   const max = Math.max(...points.map((point) => point.records.length), 1);
   const container = document.querySelector(`#${id}`);
+  if (!container) return;
   container.innerHTML = "";
   points.forEach((point, index) => {
     const button = document.createElement("button");
