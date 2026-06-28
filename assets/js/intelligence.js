@@ -1,4 +1,4 @@
-const DATA_URL = "assets/data/abstracts-index.json?v=ean-intelligence-20260628";
+const DATA_URL = "assets/data/abstracts-index.json?v=ean-intelligence-20260628-3";
 const PAGE_SIZE = 80;
 
 const colors = {
@@ -77,6 +77,46 @@ const focusCards = [
   ["Translational biomarkers", definitions.biomarkers.flatMap((item) => item[1]), "CSF, blood, imaging, genetics, neurofilament, GFAP, amyloid, tau, and digital-biomarker work."],
 ];
 
+const fieldViews = [
+  {
+    label: "Narrative-shifting evidence candidates",
+    description: "Structured oral, trial, safety, efficacy, or biomarker records that may warrant manual review for message impact.",
+    records: () => app.records.filter((record) =>
+      record.is_structured &&
+      (record.session_type === "Oral Presentation" || matchTerms(record, definitions.methods[0][1])) &&
+      matchTerms(record, ["efficacy", "effective", "significant", "improved", "reduced", "safety", "tolerability", "biomarker", "neurofilament", "gfap"]),
+    ),
+  },
+  {
+    label: "Trial-connected and late-stage signals",
+    description: "Records mentioning randomized designs, explicit phases, open-label studies, trial identifiers, or registry language.",
+    records: () => recordsForTerms(["phase 2", "phase ii", "phase 3", "phase iii", "randomized", "randomised", "open-label", "open label", "nct", "clinicaltrials.gov", "trial registration"]),
+  },
+  {
+    label: "Endpoint and outcomes map",
+    description: "Records using endpoints, scales, disability measures, patient-reported outcomes, cognition, quality of life, or functional measures.",
+    records: () => recordsForTerms(["endpoint", "outcome", "scale", "edss", "updrs", "moca", "quality of life", "patient reported", "patient-reported", "disability", "gait", "cognition"]),
+  },
+  {
+    label: "Emerging biomarker and mechanism signals",
+    description: "Biomarker, imaging, genetic, inflammatory, and mechanism-oriented abstracts for translational review.",
+    records: () => unionRecords([recordsForTerms(definitions.biomarkers.flatMap((item) => item[1])), recordsForTerms(["mechanism", "pathway", "target", "phenotype", "endotype"])]),
+  },
+  {
+    label: "Digital care and workflow signals",
+    description: "AI, imaging algorithms, wearables, remote monitoring, rehabilitation technology, and workflow-support records.",
+    records: () => unionRecords([recordsForTerms(definitions.themes[8][1]), recordsForTerms(definitions.themes[11][1]), recordsForTerms(["remote monitoring", "telemedicine", "workflow", "decision support", "app", "digital intervention"])]),
+  },
+  {
+    label: "Repeated author activity",
+    description: "Abstracts from authors with at least three EAN 2026 records, useful for identifying recurring congress contributors.",
+    records: () => {
+      const repeated = new Set((app.data.author_profiles || []).filter((profile) => profile.record_count >= 3).flatMap((profile) => profile.abstract_uids));
+      return app.records.filter((record) => repeated.has(record.uid));
+    },
+  },
+];
+
 const app = {
   data: null,
   records: [],
@@ -96,6 +136,47 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatAuthorMarkers(value) {
+  return text(value)
+    .split(";")
+    .map((part) => {
+      const trimmed = part.trim();
+      const match = trimmed.match(/^(.*?)(\d+(?:,\d+)*)$/);
+      if (!match) return escapeHtml(trimmed);
+      return `${escapeHtml(match[1].trim())}<sup>${escapeHtml(match[2])}</sup>`;
+    })
+    .filter(Boolean)
+    .join("; ");
+}
+
+function formatAffiliations(value) {
+  const entries = text(value).split(/;\s*(?=\d+[A-Za-z])/);
+  return entries
+    .map((entry) => {
+      const trimmed = entry.trim();
+      if (!trimmed) return "";
+      const match = trimmed.match(/^(\d+)(.*)$/s);
+      if (!match) return `<p class="affiliation-line">${escapeHtml(trimmed)}</p>`;
+      return `<p class="affiliation-line"><sup>${escapeHtml(match[1])}</sup>${escapeHtml(match[2].trim())}</p>`;
+    })
+    .filter(Boolean)
+    .join("");
+}
+
+function sectionClassName(label) {
+  const normalized = text(label).toLowerCase();
+  if (normalized === "authors") return "abstract-section section-authors";
+  if (normalized === "affiliations") return "abstract-section section-affiliations";
+  return "abstract-section";
+}
+
+function sectionBodyMarkup(label, value) {
+  const normalized = text(label).toLowerCase();
+  if (normalized === "authors") return `<p>${formatAuthorMarkers(value)}</p>`;
+  if (normalized === "affiliations") return `<div class="affiliation-list">${formatAffiliations(value)}</div>`;
+  return `<p>${escapeHtml(value)}</p>`;
 }
 
 function normalize(value) {
@@ -164,16 +245,15 @@ function groupRecords(keyFn) {
 
 function metadata(record) {
   return [
-    record.abstract_number ? `Record ${record.abstract_number}` : "",
-    record.primary_person,
-    record.track,
-    record.display_date,
-    record.is_structured ? "structured record" : "metadata-only record",
+    record.abstract_number ? { label: "Abstract number", value: record.abstract_number } : null,
+    record.primary_person ? { label: "First author", value: record.primary_person, format: "author" } : null,
+    record.track ? { label: "Topic", value: record.track } : null,
+    record.display_date ? { label: "Presentation date", value: record.display_date } : null,
   ].filter(Boolean);
 }
 
 function sourceLabel(record) {
-  return metadata(record).join(" / ");
+  return metadata(record).map((part) => part.value).join(" / ");
 }
 
 function kpiButton(label, records) {
@@ -187,9 +267,9 @@ function kpiButton(label, records) {
 
 function renderKpis() {
   const structured = app.records.filter((record) => record.is_structured);
-  const ai = recordsForTerms(definitions.themes[1][1]);
+  const ai = recordsForTerms(definitions.themes[11][1]);
   const trials = recordsForTerms(definitions.methods[0][1]);
-  const biomarkers = recordsForTerms(definitions.themes[4][1]);
+  const biomarkers = recordsForTerms(definitions.biomarkers.flatMap((item) => item[1]));
   const safety = recordsForTerms(["safety", "tolerability", "adverse event", "adverse events", "mortality", "death"]);
   document.querySelector("#kpi-grid").append(
     kpiButton("Total abstract records", app.records),
@@ -321,6 +401,50 @@ function renderFocusCards() {
   });
 }
 
+function recordsFromUids(uids) {
+  const recordByUid = new Map(app.records.map((record) => [record.uid, record]));
+  return (uids || []).map((uid) => recordByUid.get(uid)).filter(Boolean);
+}
+
+function profileSummary(profile, key) {
+  return (profile[key] || []).slice(0, 2).map((item) => item.name).join(" / ");
+}
+
+function renderProfileList(id, profiles, kind, summaryKey) {
+  const container = document.querySelector(`#${id}`);
+  if (!container) return;
+  container.innerHTML = "";
+  (profiles || []).slice(0, 10).forEach((profile) => {
+    const records = recordsFromUids(profile.abstract_uids);
+    const button = document.createElement("button");
+    button.className = "profile-item";
+    button.type = "button";
+    button.innerHTML = `
+      <span class="profile-main">
+        <span class="profile-name">${escapeHtml(profile.name)}</span>
+        <span class="profile-detail">${escapeHtml(profileSummary(profile, summaryKey) || "No dominant category")}</span>
+      </span>
+      <span class="profile-count">${numberFormat(profile.record_count)}</span>
+    `;
+    button.addEventListener("click", () => openRecords(kind, profile.name, records));
+    container.append(button);
+  });
+}
+
+function renderFieldCards() {
+  const container = document.querySelector("#field-cards");
+  if (!container) return;
+  fieldViews.forEach((view) => {
+    const records = view.records();
+    const button = document.createElement("button");
+    button.className = "focus-card";
+    button.type = "button";
+    button.innerHTML = `<h3>${escapeHtml(view.label)}</h3><div class="big">${numberFormat(records.length)}</div><p>${escapeHtml(view.description)}</p>`;
+    button.addEventListener("click", () => openRecords("Field intelligence view", view.label, records));
+    container.append(button);
+  });
+}
+
 function openRecords(kind, label, records) {
   app.selectedRecords = [...records].sort((a, b) => String(a.abstract_number).localeCompare(String(b.abstract_number), undefined, { numeric: true }));
   app.rendered = 0;
@@ -372,9 +496,9 @@ function sectionMarkup(record) {
   return entries
     .map(
       ([label, value]) => `
-        <section class="abstract-section">
+        <section class="${sectionClassName(label)}">
           <h3>${escapeHtml(label)}</h3>
-          <p>${escapeHtml(value)}</p>
+          ${sectionBodyMarkup(label, value)}
         </section>
       `,
     )
@@ -394,8 +518,8 @@ function openDetail(uid) {
           .map(
             (part) => `
               <div>
-                <dt>Record</dt>
-                <dd>${escapeHtml(part)}</dd>
+                <dt>${escapeHtml(part.label)}</dt>
+                <dd>${part.format === "author" ? formatAuthorMarkers(part.value) : escapeHtml(part.value)}</dd>
               </div>
             `,
           )
@@ -448,6 +572,9 @@ function renderAll() {
   renderBarList("treatmentBars", countDefinitions(definitions.treatments).sort((a, b) => b.records.length - a.records.length), "Treatment signal");
   renderBarList("biomarkerBars", countDefinitions(definitions.biomarkers).sort((a, b) => b.records.length - a.records.length), "Biomarker signal");
   renderFocusCards();
+  renderProfileList("authorProfiles", app.data.author_profiles, "Author activity", "tracks");
+  renderProfileList("institutionProfiles", app.data.institution_profiles, "Institution activity", "tracks");
+  renderFieldCards();
 }
 
 function markLoaded() {

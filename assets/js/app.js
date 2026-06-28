@@ -1,4 +1,4 @@
-const DATA_URL = "assets/data/abstracts-index.json?v=ean-abstracts";
+const DATA_URL = "assets/data/abstracts-index.json?v=ean-abstracts-20260628-2";
 const INITIAL_LIMIT = 80;
 const LIMIT_STEP = 80;
 
@@ -33,6 +33,47 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatAuthorMarkers(value) {
+  return text(value)
+    .split(";")
+    .map((part) => {
+      const trimmed = part.trim();
+      const match = trimmed.match(/^(.*?)(\d+(?:,\d+)*)$/);
+      if (!match) return escapeHtml(trimmed);
+      return `${escapeHtml(match[1].trim())}<sup>${escapeHtml(match[2])}</sup>`;
+    })
+    .filter(Boolean)
+    .join("; ");
+}
+
+function formatAffiliations(value) {
+  const entries = text(value).split(/;\s*(?=\d+[A-Za-z])/);
+  return entries
+    .map((entry) => {
+      const trimmed = entry.trim();
+      if (!trimmed) return "";
+      const match = trimmed.match(/^(\d+)(.*)$/s);
+      if (!match) return `<p class="affiliation-line">${escapeHtml(trimmed)}</p>`;
+      return `<p class="affiliation-line"><sup>${escapeHtml(match[1])}</sup>${escapeHtml(match[2].trim())}</p>`;
+    })
+    .filter(Boolean)
+    .join("");
+}
+
+function sectionClassName(label) {
+  const normalized = text(label).toLowerCase();
+  if (normalized === "authors") return "abstract-section section-authors";
+  if (normalized === "affiliations") return "abstract-section section-affiliations";
+  return "abstract-section";
+}
+
+function sectionBodyMarkup(label, value) {
+  const normalized = text(label).toLowerCase();
+  if (normalized === "authors") return `<p>${formatAuthorMarkers(value)}</p>`;
+  if (normalized === "affiliations") return `<div class="affiliation-list">${formatAffiliations(value)}</div>`;
+  return `<p>${escapeHtml(value)}</p>`;
 }
 
 function safeFilename(value) {
@@ -135,15 +176,12 @@ function compareRecords(a, b) {
 }
 
 function metadata(record) {
-  const parts = [
-    record.abstract_number ? `Record ${record.abstract_number}` : "",
-    record.primary_person,
-    record.session_type,
-    record.track,
-    record.is_structured ? "structured record" : "metadata-only record",
-    record.has_images ? `${record.image_count} figure${record.image_count === 1 ? "" : "s"}` : "",
+  return [
+    record.abstract_number ? { label: "Abstract number", value: record.abstract_number } : null,
+    record.primary_person ? { label: "First author", value: record.primary_person, format: "author" } : null,
+    record.track ? { label: "Topic", value: record.track } : null,
+    record.display_date ? { label: "Presentation date", value: record.display_date } : null,
   ].filter(Boolean);
-  return parts;
 }
 
 function renderRecord(record) {
@@ -155,7 +193,7 @@ function renderRecord(record) {
         <div class="document-row-body">
           <h3 class="document-row-title">${escapeHtml(record.title || "Untitled abstract")}</h3>
           <p class="document-row-meta">
-            ${parts.map((part) => `<span>${escapeHtml(part)}</span>`).join("")}
+            ${parts.map((part) => `<span>${escapeHtml(part.value)}</span>`).join("")}
           </p>
           <p class="abstract-summary">${escapeHtml(record.summary || "No summary available.")}</p>
           <div class="abstract-actions">
@@ -209,9 +247,9 @@ function sectionMarkup(record) {
   return entries
     .map(
       ([label, value]) => `
-        <section class="abstract-section">
+        <section class="${sectionClassName(label)}">
           <h3>${escapeHtml(label)}</h3>
-          <p>${escapeHtml(value)}</p>
+          ${sectionBodyMarkup(label, value)}
         </section>
       `,
     )
@@ -337,8 +375,8 @@ function openDetail(uid) {
           .map(
             (part) => `
               <div>
-                <dt>Record</dt>
-                <dd>${escapeHtml(part)}</dd>
+                <dt>${escapeHtml(part.label)}</dt>
+                <dd>${part.format === "author" ? formatAuthorMarkers(part.value) : escapeHtml(part.value)}</dd>
               </div>
             `,
           )
@@ -367,6 +405,25 @@ function openDetail(uid) {
     </div>
   `;
   elements.dialog.showModal();
+}
+
+function applyDeepLinkFromUrl() {
+  // Allow external documents (e.g. company-insight reports) to deep-link to a
+  // specific abstract via ?q=<term> or ?abstract=<ABSTRACT-NUMBER>. Prefills
+  // the search box, applies the filter, and, when the term exactly matches one
+  // abstract number, opens that abstract's detail dialog directly. No-op when
+  // no parameter is present, so default page behavior is unchanged.
+  const params = new URLSearchParams(window.location.search);
+  const term = (params.get("q") || params.get("abstract") || "").trim();
+  if (!term) return;
+  elements.search.value = term;
+  syncStateFromControls();
+  const browse = document.querySelector("#browse");
+  if (browse) browse.scrollIntoView({ behavior: "smooth", block: "start" });
+  const exact = state.data.abstracts.filter(
+    (record) => (record.abstract_number || "").toLowerCase() === term.toLowerCase(),
+  );
+  if (exact.length === 1) openDetail(exact[0].uid);
 }
 
 function bindEvents() {
@@ -471,6 +528,7 @@ async function start() {
     renderAnalytics(elements.trackList, state.data.tracks);
     renderAnalytics(elements.sessionList, state.data.session_types, state.data.session_types.length);
     renderResults();
+    applyDeepLinkFromUrl();
   } catch (error) {
     elements.resultCount.textContent = "Unable to load abstract data.";
     elements.results.innerHTML = `<li><p>${escapeHtml(error.message)}</p></li>`;

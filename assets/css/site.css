@@ -270,20 +270,47 @@ html {
 
 .abstract-section h3,
 .abstract-table-section h3 {
-  margin: 0 0 0.4rem;
-  color: var(--accent-navy);
-  font-size: 0.78rem;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.28rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-navy) 42%, var(--border-strong));
+  color: var(--accent-strong);
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 
 .abstract-section p,
+.abstract-section .affiliation-list,
 .table-note {
   margin: 0;
   color: var(--body-text);
   line-height: 1.68;
   white-space: pre-line;
+}
+
+.abstract-section sup,
+.metadata sup {
+  font-size: 0.72em;
+  line-height: 0;
+  vertical-align: super;
+}
+
+.section-affiliations {
+  width: 100%;
+}
+
+.section-affiliations .affiliation-list {
+  display: grid;
+  gap: 0.42rem;
+  max-width: none;
+  white-space: normal;
+}
+
+.section-affiliations .affiliation-line {
+  margin: 0;
+  max-width: none;
+  white-space: normal;
 }
 
 .table-note {

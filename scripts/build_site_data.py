@@ -86,6 +86,14 @@ AFFILIATION_RE = re.compile(
     r"IRCCS|INSERM|CNRS|CHU|APHP|NHS|National|Research)",
     re.I,
 )
+AUTHOR_INSTITUTION_TERM_RE = re.compile(
+    r"\b(University|Universidad|Université|Hospital|Department|Institute|Instituto|Centre|Center|"
+    r"Clinic|Faculty|School|College|Medical|Medicine|Neurology|Neuroscience|Research|Laboratory|"
+    r"Lab\.|Unit|Foundation|Ministry|NHS|IRCCS|INSERM|CNRS|CHU|APHP|Inc\.|LLC|GmbH|Ltd\.|"
+    r"Division|Service|Society|Pharmaceuticals|Biosciences|Therapeutics|Clinic)\b",
+    re.I,
+)
+AUTHOR_INITIAL_RE = re.compile(r"^[A-ZÀ-Þ]\.\s+[A-ZÀ-ÖØ-Þa-zÀ-ÿ'’.-]+(?:\s+[A-ZÀ-ÖØ-Þa-zÀ-ÿ'’.-]+){0,4}$")
 IGNORE_EXACT = {
     "European Journal of Neurology",
     "ABSTRACTS",
@@ -124,6 +132,80 @@ def compact_text(value, limit=None):
     if limit and len(text) > limit:
         return text[: limit - 1].rstrip() + "..."
     return text
+
+
+def strip_author_markers(value):
+    value = re.sub(r"\b\d+[,\d]*\b", " ", str(value or ""))
+    value = re.sub(r"(?<=\D)\d+(?=\s|$|;|,)", "", value)
+    return compact_text(value)
+
+
+def normalize_profile_name(value):
+    value = strip_author_markers(value)
+    value = re.sub(r"\s+", " ", value).strip(" ,.;")
+    return value
+
+
+def normalize_affiliation_text(value):
+    value = compact_text(value)
+    value = re.sub(r"^\d+[,\d]*\s*", "", value)
+    return value.strip(" ,.;")
+
+
+def split_author_names(authors):
+    names = []
+    seen = set()
+    for part in str(authors or "").split(";"):
+        name = normalize_profile_name(part)
+        if not is_plausible_author_name(name):
+            continue
+        key = name.casefold()
+        if key not in seen:
+            seen.add(key)
+            names.append(name)
+    return names
+
+
+def is_plausible_author_name(name):
+    if len(name) < 3 or len(name) > 45:
+        return False
+    if "," in name:
+        return False
+    if AUTHOR_INSTITUTION_TERM_RE.search(name):
+        return False
+    return bool(AUTHOR_INITIAL_RE.match(name))
+
+
+def institution_label(affiliation):
+    affiliation = normalize_affiliation_text(affiliation)
+    if not affiliation:
+        return ""
+    parts = [compact_text(part.replace("\n", " ")) for part in affiliation.split(",") if compact_text(part.replace("\n", " "))]
+    if not parts:
+        return ""
+    preferred = re.compile(r"\b(University|Hospital|Institute|Instituto|Centre|Center|Clinic|Klinik|IRCCS|INSERM|CNRS|CHU|APHP|NHS|Medical Center|College)\b", re.I)
+    for part in parts:
+        if preferred.search(part):
+            return part
+    return parts[0]
+
+
+def split_institution_names(sections):
+    affiliations = str((sections or {}).get("Affiliations", ""))
+    if not affiliations:
+        return []
+    parts = re.split(r";|\n(?=\d+[A-Z])", affiliations)
+    names = []
+    seen = set()
+    for part in parts:
+        name = institution_label(part)
+        if len(name) < 3:
+            continue
+        key = name.casefold()
+        if key not in seen:
+            seen.add(key)
+            names.append(name)
+    return names
 
 
 def join_wrapped_lines(lines):
@@ -360,6 +442,9 @@ def record_from_block(block):
     if date_match:
         publish_date = f"2026-06-{int(date_match.group(1)):02d}"
 
+    normalized_authors = split_author_names(authors)
+    normalized_institutions = split_institution_names(sections)
+
     return {
         "uid": block["uid"],
         "content_id": block["uid"],
@@ -375,6 +460,8 @@ def record_from_block(block):
         "source_pdf_page": block["page"],
         "primary_person": compact_text(authors.split(";", 1)[0].split(",", 1)[0]) if authors else "",
         "authors": authors,
+        "normalized_authors": normalized_authors,
+        "normalized_institutions": normalized_institutions,
         "session_type": block["presentation_type"],
         "track": block["track"] or block["presentation_type"],
         "poster_board_number": block["uid"],
@@ -403,6 +490,93 @@ def record_from_block(block):
 def option_counts(records, key):
     counts = Counter(record[key] or "Unspecified" for record in records)
     return [{"name": name, "count": count} for name, count in counts.most_common()]
+
+
+def top_counts(counter, limit=8):
+    return [{"name": name, "count": count} for name, count in counter.most_common(limit)]
+
+
+def build_author_profiles(records):
+    profiles = {}
+    for record in records:
+        authors = record.get("normalized_authors") or []
+        institutions = record.get("normalized_institutions") or []
+        for author in authors:
+            profile = profiles.setdefault(
+                author,
+                {
+                    "name": author,
+                    "abstract_uids": [],
+                    "track_counts": Counter(),
+                    "institution_counts": Counter(),
+                    "coauthor_counts": Counter(),
+                    "session_type_counts": Counter(),
+                    "structured_record_count": 0,
+                },
+            )
+            profile["abstract_uids"].append(record["uid"])
+            profile["track_counts"].update([record["track"] or "Unspecified"])
+            profile["institution_counts"].update(institutions)
+            profile["coauthor_counts"].update(name for name in authors if name != author)
+            profile["session_type_counts"].update([record["session_type"] or "Unspecified"])
+            if record["is_structured"]:
+                profile["structured_record_count"] += 1
+
+    output = []
+    for profile in profiles.values():
+        output.append(
+            {
+                "name": profile["name"],
+                "record_count": len(profile["abstract_uids"]),
+                "structured_record_count": profile["structured_record_count"],
+                "oral_presentation_count": profile["session_type_counts"].get("Oral Presentation", 0),
+                "tracks": top_counts(profile["track_counts"]),
+                "institutions": top_counts(profile["institution_counts"]),
+                "coauthors": top_counts(profile["coauthor_counts"]),
+                "abstract_uids": profile["abstract_uids"],
+            }
+        )
+    return sorted(output, key=lambda item: (-item["record_count"], -item["oral_presentation_count"], item["name"]))
+
+
+def build_institution_profiles(records):
+    profiles = {}
+    for record in records:
+        institutions = record.get("normalized_institutions") or []
+        authors = record.get("normalized_authors") or []
+        for institution in institutions:
+            profile = profiles.setdefault(
+                institution,
+                {
+                    "name": institution,
+                    "abstract_uids": [],
+                    "track_counts": Counter(),
+                    "author_counts": Counter(),
+                    "session_type_counts": Counter(),
+                    "structured_record_count": 0,
+                },
+            )
+            profile["abstract_uids"].append(record["uid"])
+            profile["track_counts"].update([record["track"] or "Unspecified"])
+            profile["author_counts"].update(authors)
+            profile["session_type_counts"].update([record["session_type"] or "Unspecified"])
+            if record["is_structured"]:
+                profile["structured_record_count"] += 1
+
+    output = []
+    for profile in profiles.values():
+        output.append(
+            {
+                "name": profile["name"],
+                "record_count": len(profile["abstract_uids"]),
+                "structured_record_count": profile["structured_record_count"],
+                "oral_presentation_count": profile["session_type_counts"].get("Oral Presentation", 0),
+                "tracks": top_counts(profile["track_counts"]),
+                "authors": top_counts(profile["author_counts"]),
+                "abstract_uids": profile["abstract_uids"],
+            }
+        )
+    return sorted(output, key=lambda item: (-item["record_count"], -item["oral_presentation_count"], item["name"]))
 
 
 def write_outputs(records, pdf_page_count):
@@ -447,6 +621,8 @@ def write_outputs(records, pdf_page_count):
         ],
         "tracks": option_counts(records, "track"),
         "session_types": option_counts(records, "session_type"),
+        "author_profiles": build_author_profiles(records),
+        "institution_profiles": build_institution_profiles(records),
         "abstracts": records,
     }
 

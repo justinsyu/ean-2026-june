@@ -16,10 +16,10 @@
 
       gtag('config', 'G-LZ784P120B');
     </script>
-    <link rel="stylesheet" href="assets/css/site.css?v=ean-2026">
-    <link rel="stylesheet" href="assets/css/intelligence.css?v=ean-20260628-4">
+    <link rel="stylesheet" href="assets/css/site.css?v=ean-20260628-3">
+    <link rel="stylesheet" href="assets/css/intelligence.css?v=ean-20260628-6">
     <script src="assets/vendor/chart.umd.min.js?v=4.4.1" defer></script>
-    <script src="assets/js/intelligence.js?v=ean-20260628-4" defer></script>
+    <script src="assets/js/intelligence.js?v=ean-20260628-7" defer></script>
   </head>
   <body class="intelligence-page is-loading" id="top">
     <header class="site-header">
@@ -119,6 +119,27 @@
         <h2><span class="dot amber"></span>Focused Intelligence Views</h2>
         <div class="grid-3" id="focus-cards"></div>
       </section>
+
+      <section class="section-block">
+        <h2><span class="dot cyan"></span>Author and Institution Activity</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>Most frequent authors</h3>
+            <div class="profile-list" id="authorProfiles"></div>
+            <p class="hint">Activity is based on normalized names extracted from the EAN supplement.</p>
+          </article>
+          <article class="card">
+            <h3>Most frequent institutions</h3>
+            <div class="profile-list" id="institutionProfiles"></div>
+            <p class="hint">Institution labels are parsed from affiliation text and should be treated as directional.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2><span class="dot green"></span>Field Intelligence Views</h2>
+        <div class="grid-3" id="field-cards"></div>
+      </section>
     </main>
 
     <dialog class="records-dialog" id="records-dialog">
@@ -147,7 +168,7 @@
 
     <footer class="site-footer">
       <p>Static archive for search, citation, and AI retrieval. Intelligence categories are keyword-derived from EAN 2026 abstract text.</p>
-      <p>Maintained by Justin Yu. <a href="https://www.ean.org/congress2026" target="_blank" rel="noopener">EAN 2026 congress site</a>.</p>
+      <p>Maintained by Justin Yu, <a href="https://advection-solutions.com/" target="_blank" rel="noopener">Advection</a>. <a href="https://www.ean.org/congress2026" target="_blank" rel="noopener">EAN 2026 congress site</a>.</p>
     </footer>
 
     <div class="floating-site-controls" aria-label="Site shortcuts">
