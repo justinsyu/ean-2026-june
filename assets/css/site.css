@@ -1276,8 +1276,6 @@ section > h2 + p {
 .kol-questions-page main.document {
   max-width: none;
   margin: 0;
-  padding-left: max(1rem, calc((100vw - 94rem) / 2));
-  padding-right: max(1rem, calc((100vw - 94rem) / 2));
 }
 
 .kol-questions-page .kol-table-frame {
@@ -1303,24 +1301,24 @@ section > h2 + p {
 .kol-questions-page .content th:first-child,
 .kol-questions-page .content td:first-child {
   width: 10%;
-  padding-right: 1.5rem;
+  padding-right: 1.2rem;
 }
 
 .kol-questions-page .content th:nth-child(2),
 .kol-questions-page .content td:nth-child(2) {
-  width: 24%;
-  padding-right: 1.5rem;
+  width: 26%;
+  padding-right: 1.2rem;
 }
 
 .kol-questions-page .content th:nth-child(3),
 .kol-questions-page .content td:nth-child(3) {
-  width: 27%;
-  padding-right: 1.5rem;
+  width: 32%;
+  padding-right: 1.2rem;
 }
 
 .kol-questions-page .content th:nth-child(4),
 .kol-questions-page .content td:nth-child(4) {
-  width: 39%;
+  width: 32%;
 }
 
 .kol-questions-page .content td {
@@ -1329,11 +1327,11 @@ section > h2 + p {
 
 .kol-evidence-list {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.5rem;
   margin: 0;
   padding-left: 1.05rem;
   color: var(--body-text);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   line-height: 1.5;
 }
 
@@ -1345,9 +1343,9 @@ section > h2 + p {
   font-weight: 700;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1120px) {
   .kol-questions-page .content .kol-table-frame table {
-    min-width: 86rem;
+    min-width: 76rem;
   }
 }
 
