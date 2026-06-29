@@ -13,6 +13,9 @@
 - When something fails, investigate the root cause before retrying.
 - Keep diffs scoped to the task: no drive-by reformats or unrelated refactors.
 
+# Static-site navigation and layout
+- Primary navigation should group same-page anchor links immediately next to the page they belong to, such as Browse, Topics, and Types. New standalone content pages should match the main section usable content width of comparable existing pages instead of adding an extra nested width cap that shrinks the layout.
+
 # HTML/PDF company-specific insights deliverables
 - Chip/pill/tag vertical centering: every chip-style component (tier tags, field labels, gap-type pills, use-case tags, cover pills) must vertically center its label text within the pill. Use display:inline-flex with align-items:center and line-height:1 (plus vertical-align:middle), not inline padding alone, which can leave the text visually off-center.
 - Inline-citation findability: every inline citation must let the reader reach the specific cited evidence when clicked. When citing congress abstracts that share one supplement DOI, do not link each abstract identifier to a generic supplement landing page or a section-level DOI where the specific abstract cannot be located; instead link each abstract identifier to a target where that exact abstract is findable, for example the open-access abstract book PDF opened at the abstract's page via a #page=N fragment (per-abstract page numbers are available in the source data).

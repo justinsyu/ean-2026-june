@@ -1273,8 +1273,9 @@ section > h2 + p {
   margin: 0 auto;
 }
 
-.kol-questions-page .document {
-  max-width: 76rem;
+.kol-questions-page main.document {
+  max-width: none;
+  margin: 0;
 }
 
 .kol-questions-page .kol-table-frame {
